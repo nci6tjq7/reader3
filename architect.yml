@@ -1,0 +1,40 @@
+name: reader3
+services:
+  reader:
+    image: hectorqin/reader:openj9-latest
+    reserved_name: reader
+    interfaces:
+      main:
+        port: 8080
+    debug:
+      volumes:
+        volume:
+          host_path: /home/reader/logs
+          mount_path: /logs
+        volume2:
+          host_path: /home/reader/storage
+          mount_path: /storage
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      READER_APP_USERBOOKLIMIT: '200'
+      READER_APP_CACHECHAPTERCONTENT: 'true'
+      READER_APP_REMOTEWEBVIEWAPI: http://readerwebview:8050
+      READER_APP_SECURE: 'true'
+      READER_APP_SECUREKEY: adminpwd
+      READER_APP_INVITECODE: registercode
+  readerwebview:
+    image: hectorqin/remote-webview
+    reserved_name: readerwebview
+    environment:
+      TZ: Asia/Shanghai
+  watchtower:
+    image: containrrr/watchtower
+    reserved_name: watchtower
+    environment:
+      TZ: Asia/Shanghai
+    debug:
+      volumes:
+        volume:
+          host_path: /var/run/docker.sock
+          mount_path: /var/run/docker.sock
+    command: reader readerwebview watchtower --cleanup --schedule "0 0 4 * * *"
